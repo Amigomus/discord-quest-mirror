@@ -5,6 +5,9 @@ on:
     - cron: '0 * * * *'  # Run every hour
   workflow_dispatch:  # Allow manual trigger
 
+permissions:
+  contents: write
+
 jobs:
   sync:
     runs-on: ubuntu-latest
@@ -26,17 +29,24 @@ jobs:
       - name: Check if file changed
         id: check_changes
         run: |
-          git add CompleteDiscordQuest.js
-          if git diff --cached --quiet; then
+          # Download current release asset if exists
+          curl -sL https://github.com/${{ github.repository }}/releases/download/latest/CompleteDiscordQuest.js -o current.js 2>/dev/null || touch current.js
+          
+          if diff -q CompleteDiscordQuest.js current.js >/dev/null 2>&1; then
             echo "changed=false" >> $GITHUB_OUTPUT
           else
             echo "changed=true" >> $GITHUB_OUTPUT
           fi
           
-      - name: Commit changes
+      - name: Create new release
         if: steps.check_changes.outputs.changed == 'true'
         run: |
-          git config user.name "GitHub Action"
-          git config user.email "action@github.com"
-          git commit -m "Update Discord Quest code ($(date))"
-          git push
+          export TZ='Asia/Riyadh'  # GMT+3
+          TIMESTAMP=$(date +%Y%m%d-%H%M%S)
+          READABLE_DATE=$(date '+%Y-%m-%d %H:%M:%S %Z')
+          gh release create "v$TIMESTAMP" CompleteDiscordQuest.js \
+            --title "Discord Quest Code - $TIMESTAMP" \
+            --notes "Auto-updated on $READABLE_DATE" \
+            --latest
+        env:
+          GH_TOKEN: ${{ github.token }}
