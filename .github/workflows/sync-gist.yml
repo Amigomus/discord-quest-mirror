@@ -43,10 +43,10 @@ jobs:
         run: |
           export TZ='Asia/Riyadh'  # GMT+3
           TIMESTAMP=$(date +%Y%m%d-%H%M%S)
-          READABLE_DATE=$(date '+%Y-%m-%d %H:%M:%S %Z')
+          READABLE_DATE=$(date '+%B %d, %Y at %H:%M:%S')
           gh release create "v$TIMESTAMP" CompleteDiscordQuest.js \
-            --title "Discord Quest Code - $TIMESTAMP" \
-            --notes "Auto-updated on $READABLE_DATE" \
+            --title "Updated: $READABLE_DATE (GMT+3)" \
+            --notes "Auto-updated on $READABLE_DATE (GMT+3)" \
             --latest
         env:
           GH_TOKEN: ${{ github.token }}
